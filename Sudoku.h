@@ -1,5 +1,5 @@
-#include <iostream>
 #include <vector>
+#include <cstdio>
 #include <cstdlib>
 #include <ctime>
 using namespace std;
@@ -17,6 +17,7 @@ class Sudoku{
 		bool validate();
 		bool check(int, int);
 		void eliminate(int, int);
+		void swap(int &, int &);
 	private:
 		int grid[9][9];
 		vector<int> psb[9][9];	
