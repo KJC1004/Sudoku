@@ -16,6 +16,7 @@ class Sudoku{
 		void transform();
 		bool validate();
 		bool check(int, int);
+		void eliminate(int, int);
 	private:
 		int grid[9][9];
 		vector<int> psb[9][9];	
