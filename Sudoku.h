@@ -14,11 +14,12 @@ class Sudoku{
 		void rotate(int);
 		void flip(int);
 		void transform();
-		bool validate();
+		void setPsb();
+		int validate();
 		bool check(int, int);
 		void eliminate(int, int);
 		void swap(int &, int &);
 	private:
 		int grid[9][9];
-		vector<int> psb[9][9];	
+		vector<int> psb[9][9];
 };
