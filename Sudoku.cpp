@@ -7,17 +7,17 @@ void Sudoku::readIn(){
 }
 void Sudoku::giveQuestion(){
 	srand(time(NULL));
-	int i, j, cnt=0;
+	int i, j, cnt;
 	int ans[9][9] = {{1,2,3,4,5,6,7,8,9}\
 			,{4,5,6,7,8,9,1,2,3}\
 			,{7,8,9,1,2,3,4,5,6}\
-			,{3,1,2,6,4,5,9,7,8}\
-			,{6,4,5,9,7,8,3,1,2}\
-			,{9,7,8,3,1,2,6,4,5}\
-			,{2,3,1,5,6,4,8,9,7}\
-			,{5,6,4,8,9,7,2,3,1}\
-			,{8,9,7,2,3,1,5,6,4}};
-	//randomize the answer
+			,{2,1,4,3,6,5,8,9,7}\
+			,{3,6,5,8,9,7,2,1,4}\
+			,{8,9,7,2,1,4,3,6,5}\
+			,{5,3,1,6,4,2,9,7,8}\
+			,{6,4,2,9,7,8,5,3,1}\
+			,{9,7,8,5,3,1,6,4,2}};
+	//random answer
 	for(i=0; i<9; i++)
 		for(j=0; j<9; j++){
 			grid[i][j]=ans[i][j];
@@ -28,20 +28,26 @@ void Sudoku::giveQuestion(){
 		for(j=0; j<9; j++)
 			swap(grid[i][j], ans[i][j]);
 	//fill in the answer randomly
-	//prevent multi-solution by DFS(mode:check)
-	while(cnt<30 || !DFS(1)){
-		do{
-			i=rand()%9;
-			j=rand()%9;
-		}while(grid[i][j]!=0);
-		grid[i][j]=ans[i][j];
-		cnt++;
-	}
+	//prevent multi-solution by backTrack(mode:check)
+	do{
+		for(i=0; i<9; i++)
+			for(j=0; j<9; j++)
+				grid[i][j]=0;
+		cnt=0;
+		while(cnt<30 || !backTrack(1)){
+			do{
+				i=rand()%9;
+				j=rand()%9;
+			}while(grid[i][j]!=0);
+			grid[i][j]=ans[i][j];
+			cnt++;
+		}
+	}while(cnt>40);
 	printOut(true);
 }
 void Sudoku::solve(){
 	if(!validate()) return;
-	printOut(DFS(0));
+	printOut(backTrack(0));
 }
 void Sudoku::transform(){
 	change();
@@ -90,7 +96,7 @@ void Sudoku::flip(int n){
 			else	 swap(grid[j][i], grid[j][8-i]);
 		}
 }
-bool Sudoku::DFS(int mode){
+bool Sudoku::backTrack(int mode){
 	//mode 0: solve
 	//mode 1: check
 	int i, j, loc, dir, tmp_q[9][9], tmp_a[9][9];
@@ -102,46 +108,47 @@ bool Sudoku::DFS(int mode){
 			else		  confirm[i][j]=false;
 			tmp_q[i][j]=grid[i][j];
 		}
-	//DFS(low)
-	for(loc=0, dir=1; loc<81; loc+=dir){
+	initUsed(0);
+	//backtrack(low)
+	for(loc=0, dir=1; loc<=80; loc+=dir){
 		i=loc/9; j=loc%9;
 		if(confirm[i][j]) continue;
 		if(dir==-1) dir=1;
-		do{grid[i][j]++;}while(!check(i, j));
-		if(grid[i][j]>9){
-			grid[i][j]=0;
-			dir=-1;
-		}
+		if(grid[i][j]>0)  setUsed(i, j, grid[i][j], false);
+		do{ grid[i][j]++;}while(used(i, j, grid[i][j]));
+		if(grid[i][j]<10) setUsed(i, j, grid[i][j], true);
+		else{ grid[i][j]=0; dir=-1;}
 	}
 	//store the answer for comparing
-	//initialize data for DFS(high)
+	//initialize data for backtrack(high)
 	for(i=0; i<9; i++)
 		for(j=0; j<9; j++){
 			tmp_a[i][j]=grid[i][j];
-			grid[i][j]=tmp_q[i][j];
-			if(grid[i][j]==0) grid[i][j]=10;
+			grid[i][j] = (tmp_q[i][j]!=0)? tmp_q[i][j]: 10;
 		}
-	//DFS(high)
-	for(loc=0, dir=1; loc<81; loc+=dir){
+	initUsed(0);
+	//backtrack(high)
+	for(loc=0, dir=1; loc<=80; loc+=dir){
 		i=loc/9; j=loc%9;
 		if(confirm[i][j]) continue;
 		if(dir==-1) dir=1;
-		do{grid[i][j]--;}while(!check(i, j));
-		if(grid[i][j]<1){
-			grid[i][j]=10;
-			dir=-1;
-		}
+		if(grid[i][j]<10) setUsed(i, j, grid[i][j], false);
+		do{ grid[i][j]--;}while(used(i, j, grid[i][j]));
+		if(grid[i][j]>0)  setUsed(i, j, grid[i][j], true);
+		else{ grid[i][j]=10; dir=-1;}
 	}
 	//(answer match)?(only-solution):(multi-solution);
-	for(i=0; i<81; i++)
-		if(grid[i/9][i%9]!=tmp_a[i/9][i%9]){
-			onlySol=false;
-			break;
+	for(i=0; i<9; i++){
+		for(j=0; j<9; j++){
+			if(grid[i][j]!=tmp_a[i][j]){
+				onlySol=false;
+				break;
+			}
 		}
-	if(mode==0){
-		if(onlySol) printf("1\n");
-		else	    printf("2\n");
+		if(!onlySol) break;
 	}
+	if(mode==0)
+		printf("%d\n", onlySol? 1: 2);
 	else
 		for(i=0; i<9; i++)
 			for(j=0; j<9; j++)
@@ -150,35 +157,97 @@ bool Sudoku::DFS(int mode){
 }
 bool Sudoku::validate(){
 	int i, j;
+	initPsb();
 	for(i=0; i<9; i++)
 		for(j=0; j<9; j++)
-			if(grid[i][j]!=0 && !check(i, j)){
-				printf("0\n");
-				return false;
+			if(grid[i][j]!=0){
+				if(!psb[i][j][grid[i][j]]){
+					printf("0\n");
+					return false;
+				}
+				elmPsb(i, j, grid[i][j]);
 			}
-	return true;
+	if(checkPsb()) return true;
+	else{ printf("0\n"); return false;}	
 }
-bool Sudoku::check(int x, int y){
-	int i, j, csx=(x/3)*3, csy=(y/3)*3;
-	//check column
+void Sudoku::initPsb(){
+	int i, j, n;
+	for(i=0; i<9; i++)
+		for(j=0; j<9; j++)
+			for(n=1; n<10; n++)
+				psb[i][j][n]=true;
+}
+void Sudoku::elmPsb(int x, int y, int n){
+	int i, j, csx=x/3*3, csy=y/3*3;
 	for(i=0; i<9; i++){
-		if(i==x) continue;
-		if(grid[i][y]==grid[x][y]) return false;
+		psb[x][i][n]=false;
+		psb[i][y][n]=false;
 	}
-	//check row
-	for(i=0; i<9; i++){
-		if(i==y) continue;
-		if(grid[x][i]==grid[x][y]) return false;
-	}
-	//check cell
-	for(i=csx; i<csx+3; i++){
-		if(i==x) continue;
-		for(j=csy; j<csy+3; j++){
-			if(j==y) continue;
-			if(grid[i][j]==grid[x][y]) return false;
+	for(i=csx; i<csx+3; i++)
+	for(j=csy; j<csy+3; j++)
+		psb[i][j][n]=false;
+}
+bool Sudoku::checkPsb(){
+	int i, j, k, l, n, space;
+	bool exec;
+	for(n=1; n<10; n++){
+		for(i=0; i<9; i++){
+			for(j=0, space=0, exec=false; j<9; j++)
+				if(psb[i][j][n]){
+					exec=true;
+					space++;
+					if(grid[i][j]!=0) space--;
+				}
+			if(space==0 && exec) return false;
+			for(j=0, space=0, exec=false; j<9; j++)
+				if(psb[j][i][n]){
+					exec=true;
+					space++;
+					if(grid[j][i]!=0) space--;
+				}
+			if(space==0 && exec) return false;
+		}
+		for(i=0; i<9; i+=3){
+		for(j=0; j<9; j+=3){
+			for(k=i, space=0, exec=false; k<i+3; k++){
+			for(l=j; l<j+3; l++){
+				if(psb[k][l][n]){
+					exec=true;
+					space++;
+					if(grid[k][l]!=0) space--;
+				}	
+			}
+			}
+			if(space==0 && exec) return false;
+		}
 		}
 	}
-	return true;
+	return true;		
+}
+void Sudoku::initUsed(int mode){
+	//mode 0: normal
+	//mode 1: validate
+	int i, j;
+	for(i=0; i<9; i++)
+		for(j=0; j<11; j++){
+			rowUsed[i][j]=false;
+			colUsed[i][j]=false;
+			cellUsed[i/3][i%3][j]=false;			
+		}
+	if(mode==0)
+		for(i=0; i<9; i++)
+			for(j=0; j<9; j++)
+				if(grid[i][j]!=0)
+					setUsed(i, j, grid[i][j], true);
+}
+void Sudoku::setUsed(int x, int y, int n, bool use){
+	rowUsed[x][n]=use;
+	colUsed[y][n]=use;
+	cellUsed[x/3][y/3][n]=use;	
+}
+bool Sudoku::used(int x, int y, int n){
+	if(n<1 || n>9) return false;
+	return (rowUsed[x][n] || colUsed[y][n] || cellUsed[x/3][y/3][n])? true: false;
 }
 void Sudoku::change(){
 	srand(time(NULL));
