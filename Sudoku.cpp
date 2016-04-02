@@ -113,7 +113,7 @@ bool Sudoku::backTrack(int mode){
 	for(loc=0, dir=1; loc<=80; loc+=dir){
 		i=loc/9; j=loc%9;
 		if(confirm[i][j]) continue;
-		if(dir==-1) dir=1;
+		dir=1;
 		if(grid[i][j]>0)  setUsed(i, j, grid[i][j], false);
 		do{ grid[i][j]++;}while(used(i, j, grid[i][j]));
 		if(grid[i][j]<10) setUsed(i, j, grid[i][j], true);
@@ -131,7 +131,7 @@ bool Sudoku::backTrack(int mode){
 	for(loc=0, dir=1; loc<=80; loc+=dir){
 		i=loc/9; j=loc%9;
 		if(confirm[i][j]) continue;
-		if(dir==-1) dir=1;
+		dir=1;
 		if(grid[i][j]<10) setUsed(i, j, grid[i][j], false);
 		do{ grid[i][j]--;}while(used(i, j, grid[i][j]));
 		if(grid[i][j]>0)  setUsed(i, j, grid[i][j], true);
@@ -221,7 +221,7 @@ bool Sudoku::checkPsb(){
 			if(space==0 && exec) return false;
 		}
 		}
-	}
+	}	
 	return true;		
 }
 void Sudoku::initUsed(int mode){
