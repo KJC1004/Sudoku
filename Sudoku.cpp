@@ -5,6 +5,29 @@ void Sudoku::readIn(){
 		for(j=0; j<9; j++)
 			scanf("%d", &grid[i][j]);
 }
+/*void Sudoku::giveQuestion(){
+	int ans[9][9] = {{0,0,0,0,0,0,0,0,0}\
+			,{0,0,0,0,0,0,0,0,0}\
+			,{0,0,0,0,0,0,0,0,0}\
+			,{0,0,0,0,0,0,0,0,0}\
+			,{0,0,0,0,0,0,0,0,0}\
+			,{0,0,0,0,0,0,0,0,0}\
+			,{0,0,1,0,0,0,0,0,0}\
+			,{0,0,0,0,0,1,0,0,0}\
+			,{0,0,0,0,0,0,2,3,4}};	
+	int ans[9][9] = {{0,0,0,0,0,0,0,1,0}\
+			,{4,0,0,0,0,0,0,0,0}\
+			,{0,2,0,0,0,0,0,0,0}\
+			,{0,0,0,0,5,0,4,0,7}\
+			,{0,0,8,0,0,0,3,0,0}\
+			,{0,0,1,0,9,0,0,0,0}\
+			,{3,0,0,4,0,0,2,0,0}\
+			,{0,5,0,1,0,0,0,0,0}\
+			,{0,0,0,8,0,6,0,0,0}};
+	for(int i=0; i<9; i++)
+		for(int j=0; j<9; j++)
+			printf("%d%c", ans[i][j], (j!=8)?' ':'\n');
+}*/
 void Sudoku::giveQuestion(){
 	srand(time(NULL));
 	int i, j, cnt;
@@ -28,7 +51,7 @@ void Sudoku::giveQuestion(){
 		for(j=0; j<9; j++)
 			ans[i][j]=grid[i][j];
 	//fill in the answer randomly
-	//prevent multi-solution by ???
+	//prevent multi-solution by answer()
 	do{
 		for(i=0; i<9; i++)
 			for(j=0; j<9; j++)
@@ -247,11 +270,13 @@ bool Sudoku::checkPsb(){
 }
 void Sudoku::change(){
 	srand(time(NULL));
-	changeNum(rand()%9+1, rand()%9+1);
-	changeRow(rand()%3, rand()%3);
-	changeCol(rand()%3, rand()%3);
-	rotate(rand()%4);
-	flip(rand()%2);
+	for(int i=0; i<10; i++){
+		changeNum(rand()%9+1, rand()%9+1);
+		changeRow(rand()%3, rand()%3);
+		changeCol(rand()%3, rand()%3);
+		rotate(rand()%4);
+		flip(rand()%2);
+	}
 }
 void Sudoku::swap(int &a, int &b){
 	int tmp;
@@ -333,5 +358,5 @@ void Sudoku::setUsed(int x, int y, int n, bool use){
 }
 bool Sudoku::used(int x, int y, int n){
 	if(n<1 || n>9) return false;
-	return (rowUsed[x][n] || colUsed[y][n] || cellUsed[x/3][y/3][n])? true: false;
+	return (rowUsed[x][n] || colUsed[y][n] || cellUsed[x/3][y/3][n]);
 }
